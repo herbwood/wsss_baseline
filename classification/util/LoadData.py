@@ -5,16 +5,18 @@ import numpy as np
 
 import torch
 import torchvision 
-from torchvision import transforms
+# from torchvision import transforms
+from .transforms import transforms
 from torch.utils.data import Dataset, DataLoader
 
 
 class VOCDataset(Dataset):
-    def __init__(self, datalist_file, root_dir, num_classes=20, transform=None):
+    def __init__(self, datalist_file, root_dir, num_classes=20, transform=None, test=False):
         self.datalist_file = datalist_file
         self.root_dir = root_dir 
         self.num_classes = num_classes 
         self.transform = transform 
+        self.testing = test
         self.image_list, self.label_list = self.read_labeled_image_list(self.root_dir, self.datalist_file)
         
     def __len__(self):
@@ -69,8 +71,9 @@ def train_data_loader(args):
                                           transforms.Normalize(mean_vals, std_vals)
                                           ])
     
-    train_dataset = VOCDataset(args.train_list, root_dir=args.img_dir, num_classes=args.num_classes, transform=transform_train)
-    train_loader = DataLoader(train_dataset, batch_size=args.bach_size, shuffle=True, num_workers=args.num_workers)
+    train_dataset = VOCDataset(args.train_list, root_dir=args.img_dir, num_classes=args.num_classes, 
+                                transform=transform_train, test=True)
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
     
     return train_loader
 
@@ -90,7 +93,8 @@ def test_data_loader(args):
                                          transforms.Normalize(mean_vals, std_vals)
                                          ])
     
-    val_dataset = VOCDataset(args.test_list, root_dir=args.img_dir, num_classes=args.num_classes, transform=transform_test)
+    val_dataset = VOCDataset(args.test_list, root_dir=args.img_dir, num_classes=args.num_classes, 
+                                transform=transform_test, test=True)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     
     return val_loader
