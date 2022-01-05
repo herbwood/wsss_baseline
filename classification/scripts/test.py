@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.append('/home/junehyoung/nsrom/classification')
 import cv2
 import time 
 import shutil 

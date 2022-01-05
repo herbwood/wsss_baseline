@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.append('/home/junehyoung/wsss_baseline/classification')
 import time 
 import shutil 
 import argparse 
