@@ -52,42 +52,38 @@ class VGG(nn.Module):
         x = x.view(-1, 20)
         
         pre_probs = x.clone()
-        self.probs = torch.sigmoid(pre_probs)
+        probs = torch.sigmoid(pre_probs)
         
         # generate attention map 
-        # if img_name != None and epoch > 0:
-        if generate_att:
-            generate_att(self.map1, epoch, label, img_name)
+        if img_name != None and epoch > 0:
+            atts = self.map1 
+            atts[atts < 0] = 0
+            ind = torch.nonzero(label)
+        
+            for i in range(ind.shape[0]):
+                batch_index, la = ind[i]
+                img_name_temp = img_name[batch_index].strip().split('/')[-1].split('.')[0]
+                accu_map_name = f'{self.att_dir}/{img_name_temp}_{la}.png'
+                att = atts[batch_index, la].cpu().data.numpy()
+                att = att / (att.max() + 1e-8) * 255
+                
+                if epoch == (self.training_epoch - 1) and not os.path.exists(accu_map_name):
+                    cv2.imwrite(accu_map_name, att)
+                
+                if probs[batch_index, la] < 0.1:
+                    continue
+                
+                if not os.path.exists(accu_map_name):
+                    cv2.imwrite(accu_map_name, att)
+                
+                # if attention map already exists from previous epochs 
+                # get maximum value from it 
+                else:
+                    accu_att = cv2.imread(accu_map_name, 0)
+                    accu_att = np.maximum(accu_att, att)
+                    cv2.imwrite(accu_map_name, accu_att)
                     
         return x 
-    
-    def generate_att(self, atts, epoch, label, img_name):
-        atts[atts < 0] = 0
-        ind = torch.nonzero(label)
-        
-        for i in range(ind.shape[0]):
-            batch_index, la = ind[i]
-            img_name_temp = img_name[batch_index].strip().split('/')[-1].split('.')[0]
-            accu_map_name = f'{self.att_dir}/{img_name_temp}_{la}.png'
-            att = atts[batch_index, la].cpu().data.numpy()
-            att = att / (att.max() + 1e-8) * 255
-            
-            if epoch == (self.training_epoch - 1) and not os.path.exists(accu_map_name):
-                cv2.imwrite(accu_map_name, att)
-            
-            if self.probs[batch_index, la] < 0.1:
-                continue
-            
-            if not os.path.exists(accu_map_name):
-                cv2.imwrite(accu_map_name, att)
-            
-            # if attention map already exists from previous epochs 
-            # get maximum value from it 
-            else:
-                accu_att = cv2.imread(accu_map_name, 0)
-                accu_att = np.maximum(accu_att, att)
-                cv2.imwrite(accu_map_name, accu_att)
-        
     
     def get_heatmaps(self):
         # return last feature map
