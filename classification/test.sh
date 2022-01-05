@@ -1,8 +1,8 @@
 #!/bin/sh
 EXP_NAME=exp1
 
-CUDA_VISIBLE_DEVICES=0  python ./scripts/test.py \
-    --img_dir=/data/VOCdevkit/VOC2012/JPEGImages/ \
+CUDA_VISIBLE_DEVICES=0  python3 ./scripts/test.py \
+    --img_dir=../../dataset/VOC2012/JPEGImages/ \
     --test_list=./data/train_cls.txt \
     --arch=vgg \
     --batch_size=1 \

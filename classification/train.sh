@@ -1,8 +1,8 @@
 #!/bin/sh
 EXP_NAME=naive_cam 
 
-CUDA_VISIBLE_DEVICES=0 python ./scripts/train.py \
-    --img_dir=/data/VOCdevkit/VOC2012/JPEGImages/ \
+CUDA_VISIBLE_DEVICES=0 python3 ./scripts/train.py \
+    --img_dir=../../dataset/VOC2012/JPEGImages/ \
     --train_list=./data/train_cls.txt \
     --test_list=./data/val_cls.txt \
     --epoch=15 \
