@@ -5,7 +5,6 @@ import torch.optim as optim
 
 def reduce_lr(args, optimizer, epoch, factor=0.1):
     values = args.decay_points.strip().split(',')
-    
     try:
         change_points = map(lambda x : int(x.strip()), values)
     except:
