@@ -88,7 +88,7 @@ def test_data_loader(args):
         
     input_size = int(args.input_size)
 
-    transform_test = transforms.Compose([transforms.Resize(input_size),
+    transform_test = transforms.Compose([#transforms.Resize(input_size),
                                          transforms.ToTensor(),
                                          transforms.Normalize(mean_vals, std_vals)
                                          ])
