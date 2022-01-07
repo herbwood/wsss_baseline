@@ -4,6 +4,7 @@ sys.path.append('/home/junehyoung/wsss_baseline/classification')
 import time 
 import shutil 
 import argparse 
+import wandb 
 
 import torch 
 import torch.nn as nn 
@@ -41,6 +42,7 @@ def get_arguments():
     parser.add_argument("--resume", type=str, default='False')
     parser.add_argument("--global_counter", type=int, default=0)
     parser.add_argument("--current_epoch", type=int, default=0)
+    parser.add_argument("--wandb_name", type=str, default='')
 
     return parser.parse_args()
 
@@ -67,6 +69,7 @@ def get_model(args):
     return model, optimizer 
 
 def train(args):
+
     batch_time = AverageMeter()
     losses = AverageMeter()
     
@@ -83,6 +86,11 @@ def train(args):
     print(model)
     model.train()
     end = time.time() 
+
+    wandb.init()
+    wandb.run.name = args.wandb_name 
+    wandb.config.update(args)
+    wandb.watch(model)
     
     while current_epoch < total_epoch:
         
@@ -95,7 +103,9 @@ def train(args):
         steps_per_epoch = len(train_loader)
         
         index = 0
+        # example_images = []
         for idx, dat in enumerate(train_loader):
+            
             img_name, img, label = dat 
             label = label.cuda(non_blocking=True)
             
@@ -105,6 +115,8 @@ def train(args):
             if len(logits.shape) == 1:
                 logits = logits.reshape(label.shape)
             loss_val = F.multilabel_soft_margin_loss(logits, label)
+
+            # example_images.append(wandb.Image(img[0]))
             
             optimizer.zero_grad()
             loss_val.backward()
@@ -117,8 +129,8 @@ def train(args):
             # global_counter counts number of batches 
             #  if number of batch hits 1000, reset losses 
             global_counter += 1
-            if global_counter % 1000 == 0:
-                losses.reset()
+            # if global_counter % 1000 == 0:
+            #     losses.reset()
             
             if global_counter % args.disp_interval == 0:
                 print('Epoch: [{}][{}/{}]\t'
@@ -126,6 +138,10 @@ def train(args):
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                         current_epoch, global_counter%len(train_loader), len(train_loader), 
                         optimizer.param_groups[0]['lr'], loss=losses))
+                wandb.log({'Train Loss' : losses.val,
+                           'Accumulated Train Loss' : losses.avg,
+                        #    'Examples' : example_images
+                         })
                 
         if current_epoch == args.epoch - 1:
             save_checkpoint(args, 
@@ -135,7 +151,7 @@ def train(args):
                                 'state_dict' : model.state_dict(),
                                 'optimizer' : optimizer.state_dict() 
                             }, is_best=False,
-                            filename=f'{args.dataset}_epoch_{current_epoch}')
+                            filename=f'{args.dataset}_epoch_{current_epoch}.pth')
         current_epoch += 1    
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append('/home/junehyoung/nsrom/classification')
+sys.path.append('/home/junehyoung/wsss_baseline/classification')
 import cv2
 import time 
 import shutil 
@@ -17,15 +17,7 @@ import torch.nn.functional as F
 
 from models import vgg
 from util.pyutils import AverageMeter 
-from util.torchutils import restore 
 from util.LoadData import test_data_loader 
-
-
-colormaps = ['#000000', '#7F0000', '#007F00', '#7F7F00', '#00007F', '#7F007F', '#007F7F', '#7F7F7F', '#3F0000', '#BF0000', '#3F7F00',
-                        '#BF7F00', '#3F007F', '#BF007F', '#3F7F7F', '#BF7F7F', '#003F00', '#7F3F00', '#00BF00', '#7FBF00', '#003F7F']
-
-def colormap(index):
-    return mpl.colors.LinearSegmentedColormap.from_list('cmap', [colormaps[0], colormaps[index+1], '#FFFFFF'], 256)
 
 def get_arguments():
     parser = argparse.ArgumentParser(description='WSSS')
@@ -52,8 +44,8 @@ def get_model(args):
     pretrained_dict = torch.load(args.restore_from)['state_dict']
     model_dict = model.state_dict()
     
-    print(model_dict.keys())
-    print(pretrained_dict.keys())
+    # print(model_dict.keys())
+    # print(pretrained_dict.keys())
     
     pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict.keys()}
     # print("Weights cannot be loaded:")
@@ -62,7 +54,7 @@ def get_model(args):
     model_dict.update(pretrained_dict)
     model.load_state_dict(model_dict)
 
-    return  model
+    return model
     
 def validate(args):
     print('\nValidating ...', flush=True, end='')
@@ -99,7 +91,7 @@ def validate(args):
                         out_name = im_name + f'_{i}.png'
                         att = cv2.resize(att, (width, height), interpolation=cv2.INTER_CUBIC)
                         cv2.imwrite(out_name, att)
-                        
+                
 if __name__ == "__main__":
     args = get_arguments()
     validate(args)    
